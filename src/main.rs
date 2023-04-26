@@ -17,10 +17,10 @@ const OFFSET_X: f32 = SCREEN_WIDTH as f32 * 0.5;
 const OFFSET_Y: f32 = SCREEN_HEIGHT as f32 * 0.5;
 
 fn main() {
-    let mut triangle = Model::triangle();
+    let mut obj = Model::triangle();
 
-    triangle.transform.translation = Vec3::new(0., 0., 1.);
-    triangle.transform.scale = Vec3::new(0.5, 0.5, 0.5);
+    obj.transform.translation = Vec3::new(0., 0., 1.);
+    obj.transform.scale = Vec3::new(0.5, 0.5, 0.5);
 
     let tan_fov = (FOV * 0.5).tan();
     let proj_m = Mat4x4::new(
@@ -45,15 +45,15 @@ fn main() {
     for _ in 0..500 {
         let mut frame_buffer = [[b' '; SCREEN_WIDTH]; SCREEN_HEIGHT];
 
-        for v in &triangle.mesh {
-            let pos = proj_m * triangle.transform.mat4() * Vec4::new(v.x, v.y, v.z, 1.);
+        for v in &obj.mesh {
+            let pos = proj_m * obj.transform.model_view() * Vec4::new(v.x, v.y, v.z, 1.);
 
             let ooz = 1. / pos.z;
 
             let (s_x, s_y) = (pos.x * ooz + OFFSET_X, pos.y * ooz + OFFSET_Y);
 
             if s_x >= 0. && s_x < SCREEN_WIDTH as f32 && s_y >= 0. && s_y < SCREEN_HEIGHT as f32 {
-                frame_buffer[s_y as usize][s_x as usize] = b'.';
+                frame_buffer[s_y as usize][s_x as usize] = b'#';
             }
         }
 
@@ -65,7 +65,6 @@ fn main() {
         print!("\x1b[{}A;", SCREEN_HEIGHT);
         std::thread::sleep(std::time::Duration::from_millis(30));
 
-        triangle.transform.rotation.z += 0.8_f32.to_radians();
-        triangle.transform.rotation.x += 0.03_f32.to_radians();
+        obj.transform.rotation.z += 0.8_f32.to_radians();
     }
 }

@@ -52,9 +52,10 @@ impl Default for Transform {
 }
 
 impl Transform {
+    /// Model View Matrix
     /// Matrix corresponds to Translate * Ry * Rx * Rz * Scale
     /// Rotations correspond to Tait-bryan angles of Y(1), X(2), Z(3)
-    pub fn mat4(&self) -> Mat4x4 {
+    pub fn model_view(&self) -> Mat4x4 {
         let (s3, c3) = self.rotation.z.sin_cos();
         let (s2, c2) = self.rotation.x.sin_cos();
         let (s1, c1) = self.rotation.y.sin_cos();
