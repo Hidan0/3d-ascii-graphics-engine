@@ -17,7 +17,7 @@ const OFFSET_X: f32 = SCREEN_WIDTH as f32 * 0.5;
 const OFFSET_Y: f32 = SCREEN_HEIGHT as f32 * 0.5;
 
 fn main() {
-    let mut obj = Model::triangle();
+    let mut obj = Model::square();
 
     obj.transform.translation = Vec3::new(0., 0., 5.);
     obj.transform.scale = Vec3::new(0.65, 0.65, 1.);
@@ -69,41 +69,47 @@ fn main() {
 }
 
 fn rasterize(screen_space: &[[f32; 2]], frame_buffer: &mut [[u8; SCREEN_WIDTH]; SCREEN_HEIGHT]) {
-    let (mut min_x, mut min_y): (f32, f32) = (SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32);
-    let (mut max_x, mut max_y): (f32, f32) =
-        (SCREEN_WIDTH as f32 * -1., SCREEN_HEIGHT as f32 * -1.);
-
-    for v in screen_space {
-        let [x, y] = *v;
-        if x < min_x {
-            min_x = x;
-        }
-        if x > max_x {
-            max_x = x;
-        }
-
-        if y < min_y {
-            min_y = y;
-        }
-        if y > max_y {
-            max_y = y;
-        }
+    if screen_space.len() % 3 != 0 {
+        panic!("Not enough verts");
     }
 
-    (min_y as usize..=max_y as usize).for_each(|y| {
-        for x in min_x as usize..=max_x as usize {
-            let p = Vec2::new(x as f32 + 0.5, y as f32 + 0.5);
+    for triangle in screen_space.chunks(3) {
+        let (mut min_x, mut min_y): (f32, f32) = (SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32);
+        let (mut max_x, mut max_y): (f32, f32) =
+            (SCREEN_WIDTH as f32 * -1., SCREEN_HEIGHT as f32 * -1.);
 
-            if is_inside_triangle(
-                Vec2::new(screen_space[0][0], screen_space[0][1]),
-                Vec2::new(screen_space[1][0], screen_space[1][1]),
-                Vec2::new(screen_space[2][0], screen_space[2][1]),
-                p,
-            ) {
-                frame_buffer[y][x] = b'.';
+        for v in triangle {
+            let [x, y] = *v;
+            if x < min_x {
+                min_x = x;
+            }
+            if x > max_x {
+                max_x = x;
+            }
+
+            if y < min_y {
+                min_y = y;
+            }
+            if y > max_y {
+                max_y = y;
             }
         }
-    });
+
+        (min_y as usize..=max_y as usize).for_each(|y| {
+            for x in min_x as usize..=max_x as usize {
+                let p = Vec2::new(x as f32 + 0.5, y as f32 + 0.5);
+
+                if is_inside_triangle(
+                    Vec2::new(triangle[0][0], triangle[0][1]),
+                    Vec2::new(triangle[1][0], triangle[1][1]),
+                    Vec2::new(triangle[2][0], triangle[2][1]),
+                    p,
+                ) {
+                    frame_buffer[y][x] = b'.';
+                }
+            }
+        });
+    }
 }
 
 fn is_inside_triangle(a: Vec2, b: Vec2, c: Vec2, p: Vec2) -> bool {

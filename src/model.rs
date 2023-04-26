@@ -7,6 +7,7 @@ pub struct Model {
     pub mesh: Vec<Vec3>,
 }
 
+#[allow(unused)]
 impl Model {
     pub fn triangle() -> Self {
         Self {
