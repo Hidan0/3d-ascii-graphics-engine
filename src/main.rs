@@ -1,97 +1,60 @@
 use std::f32::consts::PI;
 
-#[allow(unused)]
+use model::Model;
+use nalgebra_glm::{Mat4x4, Vec3, Vec4};
+
+mod model;
 
 const SCREEN_WIDTH: usize = 80;
-const SCREEN_HEIGHT: usize = 22;
-const ASPECT_RATIO: f32 = SCREEN_WIDTH as f32 / SCREEN_HEIGHT as f32;
+const SCREEN_HEIGHT: usize = 32;
+const ASPECT_RATIO: f32 = SCREEN_HEIGHT as f32 / SCREEN_WIDTH as f32;
 const FOV: f32 = PI / 4.;
 
 const NEAR: f32 = 0.1;
-const FAR: f32 = 100.;
+const FAR: f32 = 10.;
 
-const OFFSET_X: f32 = 1.0;
-const OFFSET_Y: f32 = 1.0;
-
-#[derive(Debug, Clone, Copy)]
-struct Mat4x4([[f32; 4]; 4]);
-
-#[derive(Debug, Clone, Copy)]
-struct Vec3([f32; 3]);
-
-impl Vec3 {
-    fn x(&self) -> f32 {
-        self.0[0]
-    }
-    fn y(&self) -> f32 {
-        self.0[1]
-    }
-    fn z(&self) -> f32 {
-        self.0[2]
-    }
-
-    fn times_mat4x4(&self, m: &Mat4x4) -> Self {
-        let [mx, my, mz, mw] = m.0;
-
-        let x = self.x() * mx[0] + self.y() * my[0] + self.z() * mz[0] + mw[0];
-        let y = self.x() * mx[1] + self.y() * my[1] + self.z() * mz[1] + mw[1];
-        let z = self.x() * mx[2] + self.y() * my[2] + self.z() * mz[2] + mw[2];
-
-        let w = self.x() * mx[3] + self.y() * my[3] + self.z() * mz[3] + mw[3];
-
-        if w != 0.0 {
-            return Self([x / w, y / w, z / w]);
-        }
-
-        Self([x, y, z])
-    }
-
-    fn add(&self, o: &Vec3) -> Self {
-        Self([self.x() + o.x(), self.y() + o.y(), self.z() + o.z()])
-    }
-}
-
-// const TRIANGLE: [Vec3; 3] = [
-//     Vec3([0.5, 0.5, 1.]),
-//     Vec3([0., 0.5, 1.]),
-//     Vec3([-0.5, 0.5, 1.]),
-// ];
-
-const TRIANGLE: [Vec3; 3] = [
-    Vec3([0.0, -0.5, 1.0]),
-    Vec3([0.5, 0.5, 1.0]),
-    Vec3([-0.5, 0.5, 1.0]),
-];
+const OFFSET_X: f32 = SCREEN_WIDTH as f32 * 0.5;
+const OFFSET_Y: f32 = SCREEN_HEIGHT as f32 * 0.5;
 
 fn main() {
-    let tan_fov = (FOV / 2.).tan();
-    let f_minus_n = FAR - NEAR;
+    let mut triangle = Model::triangle();
 
-    let m_proj = Mat4x4([
-        [1. / ASPECT_RATIO * tan_fov, 0., 0., 0.],
-        [0.0, 1. / tan_fov, 0.0, 0.0],
-        [0., 0., FAR / f_minus_n, 1.],
-        [0.0, 0.0, (-FAR * NEAR) / f_minus_n, 1.0],
-    ]);
+    triangle.transform.translation = Vec3::new(0., 0., 1.);
+    triangle.transform.scale = Vec3::new(0.5, 0.5, 0.5);
 
-    let mut frame_buffer = [[b' '; SCREEN_WIDTH]; SCREEN_HEIGHT];
+    let tan_fov = (FOV * 0.5).tan();
+    let proj_m = Mat4x4::new(
+        1. / (ASPECT_RATIO * tan_fov),
+        0.,
+        0.,
+        0.,
+        0.,
+        1. / tan_fov,
+        0.,
+        0.,
+        0.,
+        0.,
+        FAR / (FAR - NEAR),
+        (-FAR * NEAR) / (FAR - NEAR),
+        0.,
+        0.,
+        1.,
+        0.,
+    );
 
-    let (scale_x, scale_y) = (0.5 * SCREEN_WIDTH as f32, 0.5 * SCREEN_HEIGHT as f32);
+    for _ in 0..500 {
+        let mut frame_buffer = [[b' '; SCREEN_WIDTH]; SCREEN_HEIGHT];
 
-    let translate = Vec3([3., 3., 0.]);
+        for v in &triangle.mesh {
+            let pos = proj_m * triangle.transform.mat4() * Vec4::new(v.x, v.y, v.z, 1.);
 
-    for _ in 0..1 {
-        let mut screen_pos = [[0.0, 0.0]; TRIANGLE.len()]; // for each vert
+            let ooz = 1. / pos.z;
 
-        for (v, _) in TRIANGLE.iter().zip(screen_pos.iter_mut()) {
-            let w_pos = v.add(&translate).times_mat4x4(&m_proj);
+            let (s_x, s_y) = (pos.x * ooz + OFFSET_X, pos.y * ooz + OFFSET_Y);
 
-            let (screen_x, screen_y) = (
-                w_pos.x() * scale_x + OFFSET_X,
-                w_pos.y() * scale_y + OFFSET_Y,
-            );
-
-            frame_buffer[screen_x as usize][screen_y as usize] = b'.';
+            if s_x >= 0. && s_x < SCREEN_WIDTH as f32 && s_y >= 0. && s_y < SCREEN_HEIGHT as f32 {
+                frame_buffer[s_y as usize][s_x as usize] = b'.';
+            }
         }
 
         (0..SCREEN_HEIGHT).for_each(|l| {
@@ -99,7 +62,10 @@ fn main() {
             println!("{}", row);
         });
 
-        // print!("\x1b[{}A;", SCREEN_HEIGHT);
+        print!("\x1b[{}A;", SCREEN_HEIGHT);
         std::thread::sleep(std::time::Duration::from_millis(30));
+
+        triangle.transform.rotation.z += 0.8_f32.to_radians();
+        triangle.transform.rotation.x += 0.03_f32.to_radians();
     }
 }
