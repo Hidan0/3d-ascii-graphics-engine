@@ -1,7 +1,9 @@
 use std::f32::consts::PI;
 
-use model::Model;
+use model::GameObject;
 use nalgebra_glm::{Mat4x4, Vec2, Vec3, Vec4};
+
+use self::model::Model;
 
 mod model;
 
@@ -17,7 +19,7 @@ const OFFSET_X: f32 = SCREEN_WIDTH as f32 * 0.5;
 const OFFSET_Y: f32 = SCREEN_HEIGHT as f32 * 0.5;
 
 fn main() {
-    let mut obj = Model::square();
+    let mut obj = GameObject::new(Model::square());
 
     obj.transform.translation = Vec3::new(0., 0., 5.);
     obj.transform.scale = Vec3::new(0.65, 0.65, 1.);
@@ -45,8 +47,8 @@ fn main() {
     for _ in 0..500 {
         let mut frame_buffer = [[b' '; SCREEN_WIDTH]; SCREEN_HEIGHT];
 
-        let mut screen_space = vec![[0.0_f32, 0.0_f32]; obj.mesh.len()];
-        for (v, s) in obj.mesh.iter().zip(screen_space.iter_mut()) {
+        let mut screen_space = vec![[0.0_f32, 0.0_f32]; obj.model.len()];
+        for (v, s) in obj.into_iter().zip(screen_space.iter_mut()) {
             let pos = pp_m * obj.transform.model_view() * Vec4::new(v.x, v.y, v.z, 1.);
 
             let ooz = 1. / pos.z;

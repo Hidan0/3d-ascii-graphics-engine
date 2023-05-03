@@ -1,40 +1,88 @@
 use nalgebra_glm::{Mat4x4, Vec3};
 
-#[allow(unused)]
-#[derive(Debug, Clone, Default)]
-pub struct Model {
+#[derive(Debug)]
+pub struct GameObject {
     pub transform: Transform,
-    pub mesh: Vec<Vec3>,
+    pub model: Model,
 }
 
-#[allow(unused)]
+impl GameObject {
+    pub fn new(model: Model) -> Self {
+        Self {
+            transform: Default::default(),
+            model,
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a GameObject {
+    type Item = &'a Vec3;
+
+    type IntoIter = ModelIterator<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ModelIterator {
+            vertex_buffer: &self.model.vertex_buffer,
+            index_buffer: &self.model.index_buffer,
+            current_index: 0,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Model {
+    vertex_buffer: Vec<Vec3>,
+    index_buffer: Vec<usize>,
+}
+
 impl Model {
     pub fn triangle() -> Self {
         Self {
-            transform: Default::default(),
-            mesh: vec![
-                Vec3::new(-0.5, -0.5, 0.0),
-                Vec3::new(0.5, -0.5, 0.0),
-                Vec3::new(0.0, 0.5, 0.0),
-            ],
-        }
-    }
-    pub fn square() -> Self {
-        Self {
-            transform: Default::default(),
-            mesh: vec![
-                Vec3::new(-0.5, 0.5, 0.),
-                Vec3::new(0.5, 0.5, 0.),
-                Vec3::new(-0.5, -0.5, 0.),
-                Vec3::new(0.5, 0.5, 0.),
+            vertex_buffer: vec![
+                Vec3::new(0., 0.5, 0.),
                 Vec3::new(0.5, -0.5, 0.),
                 Vec3::new(-0.5, -0.5, 0.),
             ],
+            index_buffer: vec![0, 1, 2],
         }
+    }
+
+    pub fn square() -> Self {
+        Self {
+            vertex_buffer: vec![
+                Vec3::new(-0.5, 0.5, 0.),
+                Vec3::new(0.5, 0.5, 0.),
+                Vec3::new(-0.5, -0.5, 0.),
+                Vec3::new(0.5, -0.5, 0.),
+            ],
+            index_buffer: vec![0, 1, 2, 1, 3, 2],
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.index_buffer.len()
     }
 }
 
-#[allow(unused)]
+pub struct ModelIterator<'a> {
+    vertex_buffer: &'a Vec<Vec3>,
+    index_buffer: &'a Vec<usize>,
+    current_index: usize,
+}
+
+impl<'a> Iterator for ModelIterator<'a> {
+    type Item = &'a Vec3;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current_index < self.index_buffer.len() {
+            let index = self.index_buffer[self.current_index];
+            self.current_index += 1;
+            return Some(&self.vertex_buffer[index]);
+        }
+        None
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Transform {
     pub translation: Vec3,
