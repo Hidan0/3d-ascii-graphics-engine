@@ -39,9 +39,9 @@ impl Model {
     pub fn triangle() -> Self {
         Self {
             vertex_buffer: vec![
-                Vec3::new(0., 0.5, 0.),
-                Vec3::new(0.5, -0.5, 0.),
-                Vec3::new(-0.5, -0.5, 0.),
+                Vec3::new(0., 0.5, 1.),
+                Vec3::new(0.5, -0.5, 1.),
+                Vec3::new(-0.5, -0.5, 1.),
             ],
             index_buffer: vec![0, 1, 2],
         }
@@ -50,10 +50,10 @@ impl Model {
     pub fn square() -> Self {
         Self {
             vertex_buffer: vec![
-                Vec3::new(-0.5, 0.5, 0.),
-                Vec3::new(0.5, 0.5, 0.),
-                Vec3::new(-0.5, -0.5, 0.),
-                Vec3::new(0.5, -0.5, 0.),
+                Vec3::new(-0.5, 0.5, 1.),
+                Vec3::new(0.5, 0.5, 1.),
+                Vec3::new(-0.5, -0.5, 1.),
+                Vec3::new(0.5, -0.5, 1.),
             ],
             index_buffer: vec![0, 1, 2, 1, 3, 2],
         }
