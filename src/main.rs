@@ -2,6 +2,7 @@ use self::app::App;
 
 mod app;
 mod camera;
+mod graphics;
 mod model;
 mod render;
 
