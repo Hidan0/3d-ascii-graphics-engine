@@ -1,10 +1,6 @@
 use nalgebra_glm::Vec2;
 
 pub fn rasterize(screen_space: &[[f32; 2]], frame_buffer: &mut Vec<Vec<u8>>) {
-    if screen_space.len() % 3 != 0 {
-        panic!("Not enough verts");
-    }
-
     let screen_width = frame_buffer.len();
     let screen_height = frame_buffer[0].len();
 

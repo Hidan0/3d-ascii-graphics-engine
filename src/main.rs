@@ -4,7 +4,6 @@ mod app;
 mod camera;
 mod graphics;
 mod model;
-mod render;
 
 const SCREEN_WIDTH: usize = 80;
 const SCREEN_HEIGHT: usize = 32;
