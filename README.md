@@ -2,8 +2,10 @@
 
 ## Graphics Pipeline
 
+<div style="text-align: center">
+
 ```mermaid
-graph LR;
+graph TD;
 	A[Indexed triangle list]-->B[Split]
 	B--vtx stream-->C[VT]
 	B--idx stream-->D
@@ -11,6 +13,8 @@ graph LR;
 	D--3 vtx-->E[PST]
 	E--triangles-->F[TR]
 ```
+
+</div>
 
 Stages:
 
