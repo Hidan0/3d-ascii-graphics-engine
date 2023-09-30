@@ -1,8 +1,7 @@
-use crate::graphics::Triangle;
-
-use super::rasterizer::rasterize;
+use super::rasterizer::draw_triangle;
 use super::scene::Scene;
 use super::Geometry;
+use crate::graphics::Triangle;
 
 pub struct Pipeline {
     pub screen_width: usize,
@@ -22,6 +21,7 @@ impl Pipeline {
             aspect_ratio: screen_height as f32 / screen_width as f32,
         }
     }
+
     pub fn draw(&self, scene: &dyn Scene) {
         let triangles = self.triangle_assembler(scene);
         let triangles = self.post_process_triangles(scene, triangles);
@@ -77,30 +77,12 @@ impl Pipeline {
     fn triangle_resterizer(&self, triangles: Vec<Triangle>) -> Vec<Vec<u8>> {
         let mut frame_buffer = vec![vec![b' '; self.screen_width]; self.screen_height];
 
-        let mut screen_space = vec![[0.0_f32, 0.0_f32]; triangles.len() * 3];
-
-        let mut screen_i = 0;
         for triangle in triangles {
-            let ooz0 = 1. / triangle.v0.z;
-            let ooz1 = 1. / triangle.v1.z;
-            let ooz2 = 1. / triangle.v2.z;
+            let screen_space_triangle =
+                triangle.to_screen_space_triangle(self.offset_x, self.offset_y);
 
-            screen_space[screen_i] = [
-                triangle.v0.x * ooz0 + self.offset_x,
-                triangle.v0.y * ooz0 + self.offset_y,
-            ];
-            screen_space[screen_i + 1] = [
-                triangle.v1.x * ooz1 + self.offset_x,
-                triangle.v1.y * ooz1 + self.offset_y,
-            ];
-            screen_space[screen_i + 2] = [
-                triangle.v2.x * ooz2 + self.offset_x,
-                triangle.v2.y * ooz2 + self.offset_y,
-            ];
-            screen_i += 3;
+            draw_triangle(&mut frame_buffer, &screen_space_triangle);
         }
-
-        rasterize(&screen_space, &mut frame_buffer);
 
         frame_buffer
     }
