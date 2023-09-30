@@ -1,4 +1,6 @@
-use nalgebra_glm::{Mat4x4, Vec3};
+use nalgebra_glm::{Mat4x4, Vec3, Vec4};
+
+use crate::graphics::Geometry;
 
 #[derive(Debug)]
 pub struct GameObject {
@@ -15,17 +17,17 @@ impl GameObject {
     }
 }
 
-impl<'a> IntoIterator for &'a GameObject {
-    type Item = &'a Vec3;
+impl Geometry for GameObject {
+    fn verteces(&self) -> Vec<Vec4> {
+        self.model
+            .vertex_buffer
+            .iter()
+            .map(|v| self.transform.model_view() * Vec4::new(v.x, v.y, v.z, 1.))
+            .collect()
+    }
 
-    type IntoIter = ModelIterator<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        ModelIterator {
-            vertex_buffer: &self.model.vertex_buffer,
-            index_buffer: &self.model.index_buffer,
-            current_index: 0,
-        }
+    fn indeces(&self) -> &Vec<usize> {
+        &self.model.index_buffer
     }
 }
 
@@ -57,29 +59,6 @@ impl Model {
             ],
             index_buffer: vec![0, 1, 2, 1, 3, 2],
         }
-    }
-
-    pub fn len(&self) -> usize {
-        self.index_buffer.len()
-    }
-}
-
-pub struct ModelIterator<'a> {
-    vertex_buffer: &'a Vec<Vec3>,
-    index_buffer: &'a Vec<usize>,
-    current_index: usize,
-}
-
-impl<'a> Iterator for ModelIterator<'a> {
-    type Item = &'a Vec3;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.current_index < self.index_buffer.len() {
-            let index = self.index_buffer[self.current_index];
-            self.current_index += 1;
-            return Some(&self.vertex_buffer[index]);
-        }
-        None
     }
 }
 
