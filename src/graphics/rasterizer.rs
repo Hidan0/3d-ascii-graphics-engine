@@ -2,7 +2,7 @@ use super::ScreenSpaceTriangle;
 use nalgebra_glm::Vec2;
 use std::mem;
 
-const COLORS: [u8; 8] = [b'\'', b'.', b':', b'-', b'=', b'+', b'*', b'#'];
+const COLORS: [u8; 6] = [b'X', b'A', b'@', b'#', b'$', b'%'];
 
 pub fn draw_triangle(frame_buffer: &mut [Vec<u8>], triangle: &ScreenSpaceTriangle, i: usize) {
     let mut pv0 = &triangle.v0;
@@ -28,14 +28,14 @@ pub fn draw_triangle(frame_buffer: &mut [Vec<u8>], triangle: &ScreenSpaceTriangl
         if pv1.x < pv0.x {
             mem::swap(&mut pv0, &mut pv1);
         }
-        draw_flat_top_triangle(frame_buffer, *pv0, *pv1, *pv2, COLORS[i % 8]);
+        draw_flat_top_triangle(frame_buffer, *pv0, *pv1, *pv2, COLORS[i % COLORS.len()]);
     } else if pv1.y == pv2.y {
         // natural flat bottom
 
         if pv2.x < pv1.x {
             mem::swap(&mut pv2, &mut pv1);
         }
-        draw_flat_bottom_triangle(frame_buffer, *pv0, *pv1, *pv2, COLORS[i % 8]);
+        draw_flat_bottom_triangle(frame_buffer, *pv0, *pv1, *pv2, COLORS[i % COLORS.len()]);
     } else {
         // general triangle
 
@@ -48,11 +48,11 @@ pub fn draw_triangle(frame_buffer: &mut [Vec<u8>], triangle: &ScreenSpaceTriangl
 
         if pv1.x < v_inter.x {
             // major right
-            draw_flat_bottom_triangle(frame_buffer, *pv0, *pv1, v_inter, COLORS[i % 8]);
-            draw_flat_top_triangle(frame_buffer, *pv1, v_inter, *pv2, COLORS[(i + 1) % 8]);
+            draw_flat_bottom_triangle(frame_buffer, *pv0, *pv1, v_inter, COLORS[i % COLORS.len()]);
+            draw_flat_top_triangle(frame_buffer, *pv1, v_inter, *pv2, COLORS[i % COLORS.len()]);
         } else {
-            draw_flat_bottom_triangle(frame_buffer, *pv0, v_inter, *pv1, COLORS[i % 8]);
-            draw_flat_top_triangle(frame_buffer, v_inter, *pv1, *pv2, COLORS[(i + 1) % 8]);
+            draw_flat_bottom_triangle(frame_buffer, *pv0, v_inter, *pv1, COLORS[i % COLORS.len()]);
+            draw_flat_top_triangle(frame_buffer, v_inter, *pv1, *pv2, COLORS[i % COLORS.len()]);
         }
     }
 }

@@ -39,7 +39,7 @@ impl SimpleScene {
 
         let mut obj = GameObject::new(Model::cube());
 
-        obj.transform.scale = Vec3::new(4., 4., 1.);
+        obj.transform.scale = Vec3::new(5., 5., 1.);
 
         Self {
             camera,
@@ -52,6 +52,7 @@ impl Scene for SimpleScene {
     fn update(&mut self) {
         self.game_objects[0].transform.rotation.z += 0.8_f32.to_radians();
         self.game_objects[0].transform.rotation.x += 0.2_f32.to_radians();
+        self.game_objects[0].transform.rotation.y += 0.2_f32.to_radians();
     }
 
     fn camera(&self) -> &Camera {

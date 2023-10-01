@@ -23,8 +23,8 @@ impl Pipeline {
     }
 
     pub fn draw(&self, scene: &dyn Scene) {
-        let triangles = self.triangle_assembler(scene);
-        let triangles = self.post_process_triangles(scene, triangles);
+        let mut pre_triangles = self.triangle_assembler(scene);
+        let triangles = self.post_process_triangles(scene, &mut pre_triangles);
 
         let frame_buffer = self.triangle_resterizer(triangles);
 
@@ -63,15 +63,36 @@ impl Pipeline {
         triangles
     }
 
-    fn post_process_triangles(&self, scene: &dyn Scene, triangles: Vec<Triangle>) -> Vec<Triangle> {
-        triangles
-            .iter()
-            .map(|t| Triangle {
-                v0: scene.camera().projection_matrix * t.v0,
-                v1: scene.camera().projection_matrix * t.v1,
-                v2: scene.camera().projection_matrix * t.v2,
-            })
-            .collect()
+    fn post_process_triangles(
+        &self,
+        scene: &dyn Scene,
+        triangles: &mut [Triangle],
+    ) -> Vec<Triangle> {
+        self.triangles_to_view_space(scene, triangles);
+        let cull_flags = self.backface_culling(triangles);
+
+        assert!(triangles.len() == cull_flags.len());
+
+        let mut out = Vec::new();
+        for (i, _) in triangles.iter().enumerate() {
+            if cull_flags[i] {
+                out.push(triangles[i].clone());
+            }
+        }
+
+        out
+    }
+
+    fn triangles_to_view_space(&self, scene: &dyn Scene, triangles: &mut [Triangle]) {
+        triangles.iter_mut().for_each(|t| {
+            t.v0 = scene.camera().projection_matrix * t.v0;
+            t.v1 = scene.camera().projection_matrix * t.v1;
+            t.v2 = scene.camera().projection_matrix * t.v2;
+        });
+    }
+
+    fn backface_culling(&self, triangles: &[Triangle]) -> Vec<bool> {
+        triangles.iter().map(|t| t.is_front_facing()).collect()
     }
 
     fn triangle_resterizer(&self, triangles: Vec<Triangle>) -> Vec<Vec<u8>> {
