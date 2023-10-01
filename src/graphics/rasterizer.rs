@@ -58,41 +58,51 @@ pub fn draw_triangle(frame_buffer: &mut [Vec<u8>], triangle: &ScreenSpaceTriangl
 }
 
 fn draw_flat_top_triangle(frame_buffer: &mut [Vec<u8>], v0: Vec2, v1: Vec2, v2: Vec2, char: u8) {
-    let m0: f32 = (v2.x - v0.x) / (v2.y - v0.y);
-    let m1: f32 = (v2.x - v1.x) / (v2.y - v1.y);
+    let delta_y = v2.y - v0.y;
+    let dv0 = (v2 - v0) / delta_y;
+    let dv1 = (v2 - v1) / delta_y;
 
-    let y_start: usize = (v0.y - 0.5).ceil() as usize;
-    let y_end: usize = (v2.y - 0.5).ceil() as usize;
+    let inter_edge1 = v1;
 
-    (y_start..y_end).for_each(|y| {
-        let px0: f32 = m0 * (y as f32 + 0.5 - v0.y) + v0.x;
-        let px1: f32 = m1 * (y as f32 + 0.5 - v1.y) + v1.x;
-
-        let x_start: usize = (px0 - 0.5).ceil() as usize;
-        let x_end: usize = (px1 - 0.5).ceil() as usize;
-
-        for x in x_start..x_end {
-            frame_buffer[y][x] = char;
-        }
-    });
+    draw_flat_triangle(frame_buffer, v0, v2, dv0, dv1, inter_edge1, char);
 }
 
 fn draw_flat_bottom_triangle(frame_buffer: &mut [Vec<u8>], v0: Vec2, v1: Vec2, v2: Vec2, char: u8) {
-    let m0: f32 = (v1.x - v0.x) / (v1.y - v0.y);
-    let m1: f32 = (v2.x - v0.x) / (v2.y - v0.y);
+    let delta_y = v2.y - v0.y;
+    let dv0 = (v1 - v0) / delta_y;
+    let dv1 = (v2 - v0) / delta_y;
 
-    let y_start: usize = (v0.y - 0.5).ceil() as usize;
-    let y_end: usize = (v2.y - 0.5).ceil() as usize;
+    let inter_edge1 = v0;
+
+    draw_flat_triangle(frame_buffer, v0, v2, dv0, dv1, inter_edge1, char);
+}
+
+fn draw_flat_triangle(
+    frame_buffer: &mut [Vec<u8>],
+    v0: Vec2,
+    v2: Vec2,
+    dv0: Vec2,
+    dv1: Vec2,
+    mut right_edge: Vec2,
+    char: u8,
+) {
+    let mut left_edge = v0;
+
+    let y_start = (v0.y - 0.5).ceil() as usize;
+    let y_end = (v2.y - 0.5).ceil() as usize;
+
+    left_edge += dv0 * (y_start as f32 + 0.5 - v0.y);
+    right_edge += dv1 * (y_start as f32 + 0.5 - v0.y);
 
     (y_start..y_end).for_each(|y| {
-        let px0: f32 = m0 * (y as f32 + 0.5 - v0.y) + v0.x;
-        let px1: f32 = m1 * (y as f32 + 0.5 - v0.y) + v0.x;
+        let x_start = (left_edge.x - 0.5).ceil() as usize;
+        let x_end = (right_edge.x - 0.5).ceil() as usize;
 
-        let x_start: usize = (px0 - 0.5).ceil() as usize;
-        let x_end: usize = (px1 - 0.5).ceil() as usize;
-
-        for x in x_start..x_end {
+        (x_start..x_end).for_each(|x| {
             frame_buffer[y][x] = char;
-        }
-    })
+        });
+
+        left_edge += dv0;
+        right_edge += dv1;
+    });
 }
