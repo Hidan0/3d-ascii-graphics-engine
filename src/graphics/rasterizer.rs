@@ -2,7 +2,9 @@ use super::ScreenSpaceTriangle;
 use nalgebra_glm::Vec2;
 use std::mem;
 
-pub fn draw_triangle(frame_buffer: &mut [Vec<u8>], triangle: &ScreenSpaceTriangle) {
+const COLORS: [u8; 8] = [b'\'', b'.', b':', b'-', b'=', b'+', b'*', b'#'];
+
+pub fn draw_triangle(frame_buffer: &mut [Vec<u8>], triangle: &ScreenSpaceTriangle, i: usize) {
     let mut pv0 = &triangle.v0;
     let mut pv1 = &triangle.v1;
     let mut pv2 = &triangle.v2;
@@ -26,14 +28,14 @@ pub fn draw_triangle(frame_buffer: &mut [Vec<u8>], triangle: &ScreenSpaceTriangl
         if pv1.x < pv0.x {
             mem::swap(&mut pv0, &mut pv1);
         }
-        draw_flat_top_triangle(frame_buffer, *pv0, *pv1, *pv2);
+        draw_flat_top_triangle(frame_buffer, *pv0, *pv1, *pv2, COLORS[i % 8]);
     } else if pv1.y == pv2.y {
         // natural flat bottom
 
         if pv2.x < pv1.x {
             mem::swap(&mut pv2, &mut pv1);
         }
-        draw_flat_bottom_triangle(frame_buffer, *pv0, *pv1, *pv2);
+        draw_flat_bottom_triangle(frame_buffer, *pv0, *pv1, *pv2, COLORS[i % 8]);
     } else {
         // general triangle
 
@@ -46,16 +48,16 @@ pub fn draw_triangle(frame_buffer: &mut [Vec<u8>], triangle: &ScreenSpaceTriangl
 
         if pv1.x < v_inter.x {
             // major right
-            draw_flat_bottom_triangle(frame_buffer, *pv0, *pv1, v_inter);
-            draw_flat_top_triangle(frame_buffer, *pv1, v_inter, *pv2);
+            draw_flat_bottom_triangle(frame_buffer, *pv0, *pv1, v_inter, COLORS[i % 8]);
+            draw_flat_top_triangle(frame_buffer, *pv1, v_inter, *pv2, COLORS[(i + 1) % 8]);
         } else {
-            draw_flat_bottom_triangle(frame_buffer, *pv0, v_inter, *pv1);
-            draw_flat_top_triangle(frame_buffer, v_inter, *pv1, *pv2);
+            draw_flat_bottom_triangle(frame_buffer, *pv0, v_inter, *pv1, COLORS[i % 8]);
+            draw_flat_top_triangle(frame_buffer, v_inter, *pv1, *pv2, COLORS[(i + 1) % 8]);
         }
     }
 }
 
-fn draw_flat_top_triangle(frame_buffer: &mut [Vec<u8>], v0: Vec2, v1: Vec2, v2: Vec2) {
+fn draw_flat_top_triangle(frame_buffer: &mut [Vec<u8>], v0: Vec2, v1: Vec2, v2: Vec2, char: u8) {
     let m0: f32 = (v2.x - v0.x) / (v2.y - v0.y);
     let m1: f32 = (v2.x - v1.x) / (v2.y - v1.y);
 
@@ -70,12 +72,12 @@ fn draw_flat_top_triangle(frame_buffer: &mut [Vec<u8>], v0: Vec2, v1: Vec2, v2: 
         let x_end: usize = (px1 - 0.5).ceil() as usize;
 
         for x in x_start..x_end {
-            frame_buffer[y][x] = b'.';
+            frame_buffer[y][x] = char;
         }
     });
 }
 
-fn draw_flat_bottom_triangle(frame_buffer: &mut [Vec<u8>], v0: Vec2, v1: Vec2, v2: Vec2) {
+fn draw_flat_bottom_triangle(frame_buffer: &mut [Vec<u8>], v0: Vec2, v1: Vec2, v2: Vec2, char: u8) {
     let m0: f32 = (v1.x - v0.x) / (v1.y - v0.y);
     let m1: f32 = (v2.x - v0.x) / (v2.y - v0.y);
 
@@ -90,7 +92,7 @@ fn draw_flat_bottom_triangle(frame_buffer: &mut [Vec<u8>], v0: Vec2, v1: Vec2, v
         let x_end: usize = (px1 - 0.5).ceil() as usize;
 
         for x in x_start..x_end {
-            frame_buffer[y][x] = b'.';
+            frame_buffer[y][x] = char;
         }
     })
 }

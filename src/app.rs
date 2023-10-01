@@ -21,7 +21,7 @@ impl App {
     pub fn run(&self) {
         let mut scene = SimpleScene::new(self.pipeline.aspect_ratio);
 
-        for _ in 0..500 {
+        for _ in 0..1000 {
             self.pipeline.draw(&scene);
             scene.update();
         }
@@ -37,7 +37,7 @@ impl SimpleScene {
     fn new(aspect_ratio: f32) -> Self {
         let camera = Camera::new_perspective_camera(FRAC_PI_4, aspect_ratio, 0.1, 10.);
 
-        let mut obj = GameObject::new(Model::square());
+        let mut obj = GameObject::new(Model::cube());
 
         obj.transform.scale = Vec3::new(4., 4., 1.);
 
@@ -51,6 +51,7 @@ impl SimpleScene {
 impl Scene for SimpleScene {
     fn update(&mut self) {
         self.game_objects[0].transform.rotation.z += 0.8_f32.to_radians();
+        self.game_objects[0].transform.rotation.x += 0.2_f32.to_radians();
     }
 
     fn camera(&self) -> &Camera {

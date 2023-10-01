@@ -77,11 +77,11 @@ impl Pipeline {
     fn triangle_resterizer(&self, triangles: Vec<Triangle>) -> Vec<Vec<u8>> {
         let mut frame_buffer = vec![vec![b' '; self.screen_width]; self.screen_height];
 
-        for triangle in triangles {
+        for (i, triangle) in triangles.into_iter().enumerate() {
             let screen_space_triangle =
                 triangle.to_screen_space_triangle(self.offset_x, self.offset_y);
 
-            draw_triangle(&mut frame_buffer, &screen_space_triangle);
+            draw_triangle(&mut frame_buffer, &screen_space_triangle, i);
         }
 
         frame_buffer
