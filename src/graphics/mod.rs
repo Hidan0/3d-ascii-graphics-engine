@@ -9,7 +9,7 @@ pub trait Geometry {
     fn indeces(&self) -> &Vec<usize>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Triangle {
     v0: Vec4,
     v1: Vec4,
@@ -33,5 +33,11 @@ impl Triangle {
             v1: Vec2::new(self.v1.x * ooz1 + offset_x, self.v1.y * ooz1 + offset_y),
             v2: Vec2::new(self.v2.x * ooz2 + offset_x, self.v2.y * ooz2 + offset_y),
         }
+    }
+
+    fn is_front_facing(&self) -> bool {
+        ((self.v1.xyz() - self.v0.xyz()).cross(&(self.v2.xyz() - self.v0.xyz())))
+            .dot(&self.v0.xyz())
+            >= 0.
     }
 }
