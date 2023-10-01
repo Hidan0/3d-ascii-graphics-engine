@@ -37,6 +37,7 @@ pub struct Model {
     index_buffer: Vec<usize>,
 }
 
+#[allow(dead_code)]
 impl Model {
     pub fn triangle() -> Self {
         Self {
@@ -45,7 +46,7 @@ impl Model {
                 Vec3::new(0.5, -0.5, 1.),
                 Vec3::new(-0.5, -0.5, 1.),
             ],
-            index_buffer: vec![0, 1, 2],
+            index_buffer: vec![0, 2, 1],
         }
     }
 
@@ -57,7 +58,7 @@ impl Model {
                 Vec3::new(-0.5, -0.5, 1.),
                 Vec3::new(0.5, -0.5, 1.),
             ],
-            index_buffer: vec![0, 1, 2, 1, 3, 2],
+            index_buffer: vec![0, 2, 1, 1, 2, 3],
         }
     }
 
