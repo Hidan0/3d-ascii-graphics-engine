@@ -43,13 +43,8 @@ impl Pipeline {
         for obj in scene.game_objects() {
             let vtx = obj.verteces();
 
-            if vtx.len() < 2 {
-                panic!("Not enough verteces");
-            }
-
-            if obj.indeces().len() % 3 != 0 {
-                panic!("Not enough indeces");
-            }
+            assert!(vtx.len() > 2);
+            assert!(obj.indeces().len() % 3 == 0);
 
             for i in obj.indeces().chunks(3) {
                 triangles.push(Triangle {
